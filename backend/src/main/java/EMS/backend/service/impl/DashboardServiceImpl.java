@@ -2,11 +2,13 @@ package EMS.backend.service.impl;
 
 import EMS.backend.dto.DashboardDTO;
 import EMS.backend.entity.LeaveStatus;
+import EMS.backend.entity.Role;
 import EMS.backend.repository.*;
 import EMS.backend.service.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -17,19 +19,22 @@ public class DashboardServiceImpl implements DashboardService {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private LeaveRepository leaveRepository;
+    private LeaveRequestRepository leaveRequestRepository;
 
     @Autowired
-    private TaskRepository taskRepository;
+    private WorkTaskRepository workTaskRepository;
 
     @Autowired
     private IssueRepository issueRepository;
 
     @Autowired
-    private DepartmentRepository departmentRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private SalaryRepository salaryRepository;
+
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     @Override
     public DashboardDTO getAdminStats() {
@@ -43,34 +48,65 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardDTO getManagerStats(Long userId) {
-        return buildStats();
-    }
-
-    @Override
-    public DashboardDTO getEmployeeStats() {
+        // Manager stats could be filtered by its managed employees, 
+        // but for now providing overall as requested by "analytics dashboard: show in admin,HR,manager"
         return buildStats();
     }
 
     private DashboardDTO buildStats() {
         long totalEmployees = employeeRepository.count();
-        long totalDepartments = departmentRepository.count();
         long totalUsers = userRepository.count();
-        long pendingLeaves = leaveRepository.findByStatus(LeaveStatus.PENDING_HR).size() +
-                             leaveRepository.findByStatus(LeaveStatus.PENDING_MANAGER).size();
-        long activeTasks = taskRepository.findAll().stream().filter(t -> !t.isCompleted()).count();
-        long resolvedIssues = issueRepository.findAll().stream().filter(i -> i.isResolved()).count();
+        long totalDepartments = departmentRepository.count();
+        long pendingLeaves = leaveRequestRepository.findByStatus(LeaveStatus.PENDING_HR).size() +
+                             leaveRequestRepository.findByStatus(LeaveStatus.PENDING_MANAGER).size();
+        long activeTasks = workTaskRepository.findAll().stream().filter(t -> !t.isCompleted()).count();
+        long totalIssues = issueRepository.count();
+        long resolvedIssues = issueRepository.findAll().stream().filter(i -> "COMPLETED".equals(i.getStatus())).count();
 
         Map<String, Long> roles = userRepository.findAll().stream()
                 .collect(Collectors.groupingBy(u -> u.getRole().name(), Collectors.counting()));
 
+        java.util.List<Map<String, Object>> hrList = userRepository.findByRole(Role.HR).stream()
+                .map(u -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("username", u.getUsername());
+                    m.put("email", u.getEmail());
+                    m.put("createdAt", u.getCreatedAt());
+                    return m;
+                }).collect(Collectors.toList());
+
+        java.util.List<Map<String, Object>> managerList = userRepository.findByRole(Role.MANAGER).stream()
+                .map(u -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("username", u.getUsername());
+                    m.put("email", u.getEmail());
+                    m.put("createdAt", u.getCreatedAt());
+                    return m;
+                }).collect(Collectors.toList());
+
+        java.util.List<Map<String, Object>> employeeList = employeeRepository.findAll().stream()
+                .map(e -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("username", e.getUser().getUsername());
+                    m.put("email", e.getUser().getEmail());
+                    m.put("createdAt", e.getUser().getCreatedAt());
+                    m.put("manager", e.getManager() != null ? e.getManager().getUsername() : "N/A");
+                    m.put("department", e.getDepartment() != null ? e.getDepartment().getName() : "N/A");
+                    return m;
+                }).collect(Collectors.toList());
+
         return DashboardDTO.builder()
                 .totalEmployees(totalEmployees)
-                .totalDepartments(totalDepartments)
                 .totalUsers(totalUsers)
+                .totalDepartments(totalDepartments)
                 .pendingLeaves(pendingLeaves)
                 .activeTasks(activeTasks)
+                .totalIssues(totalIssues)
                 .resolvedIssues(resolvedIssues)
                 .roleDistribution(roles)
+                .hrList(hrList)
+                .managerList(managerList)
+                .employeeList(employeeList)
                 .build();
     }
 }
