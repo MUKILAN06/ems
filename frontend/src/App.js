@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import CalendarPage from './pages/CalendarPage';
 import HRCreation from './pages/HRCreation';
 import EmployeeCreation from './pages/EmployeeCreation';
 import Departments from './pages/Departments';
@@ -31,6 +32,7 @@ function App() {
             <Route path="/admin/employee-creation" element={<Layout><EmployeeCreation /></Layout>} />
             <Route path="/admin/hr-creation" element={<Layout><HRCreation /></Layout>} />
             <Route path="/admin/departments" element={<Layout><Departments /></Layout>} />
+            <Route path="/admin/calendar" element={<Layout><CalendarPage /></Layout>} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['HR']} />}>
@@ -39,12 +41,14 @@ function App() {
             <Route path="/hr/manager-creation" element={<Layout><ManagerCreation /></Layout>} />
             <Route path="/hr/leaves" element={<Layout><HRLeaveManagement /></Layout>} />
             <Route path="/hr/salaries" element={<Layout><HRSalaryManagement /></Layout>} />
+            <Route path="/hr/calendar" element={<Layout><CalendarPage /></Layout>} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['MANAGER']} />}>
             <Route path="/manager" element={<Layout><Dashboard /></Layout>} />
             <Route path="/manager/tasks" element={<Layout><TaskAssignment /></Layout>} />
             <Route path="/manager/leaves" element={<Layout><ManagerLeaveApproval /></Layout>} />
+            <Route path="/manager/calendar" element={<Layout><CalendarPage /></Layout>} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={['EMPLOYEE']} />}>
@@ -53,6 +57,7 @@ function App() {
             <Route path="/employee/tasks" element={<Layout><MyTasks /></Layout>} />
             <Route path="/employee/salary" element={<Layout><MySalary /></Layout>} />
             <Route path="/employee/issues" element={<Layout><IssueTracker /></Layout>} />
+            <Route path="/employee/calendar" element={<Layout><CalendarPage /></Layout>} />
           </Route>
 
           <Route path="/" element={<Navigate to="/login" replace />} />

@@ -17,21 +17,26 @@ public class DashboardController {
     private DashboardService dashboardService;
 
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> getAdminStats() {
         return ResponseEntity.ok(dashboardService.getAdminStats());
     }
 
     @GetMapping("/hr")
-    @PreAuthorize("hasRole('HR')")
+    @PreAuthorize("hasAuthority('HR')")
     public ResponseEntity<?> getHRStats() {
         return ResponseEntity.ok(dashboardService.getHRStats());
     }
 
     @GetMapping("/manager")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAuthority('MANAGER')")
     public ResponseEntity<?> getManagerStats(Authentication auth) {
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         return ResponseEntity.ok(dashboardService.getManagerStats(userDetails.getId()));
+    }
+
+    @GetMapping("/employee")
+    public ResponseEntity<?> getEmployeeStats() {
+        return ResponseEntity.ok(dashboardService.getEmployeeStats());
     }
 }

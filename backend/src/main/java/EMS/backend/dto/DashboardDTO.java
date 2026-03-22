@@ -8,6 +8,8 @@ import java.util.Map;
 @Builder
 public class DashboardDTO {
     private long totalEmployees;
+    private long totalDepartments;
+    private long totalUsers;
     private long pendingLeaves;
     private long activeTasks;
     private long resolvedIssues;

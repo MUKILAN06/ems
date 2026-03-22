@@ -6,4 +6,5 @@ public interface DashboardService {
     DashboardDTO getAdminStats();
     DashboardDTO getHRStats();
     DashboardDTO getManagerStats(Long userId);
+    DashboardDTO getEmployeeStats();
 }

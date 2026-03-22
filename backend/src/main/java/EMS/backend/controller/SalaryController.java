@@ -21,13 +21,13 @@ import java.util.Optional;
 @RequestMapping("/api/salaries")
 public class SalaryController {
     @Autowired
-    SalaryRepository salaryRepository;
+    private SalaryRepository salaryRepository;
 
     @Autowired
-    EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @PostMapping("/put")
     @PreAuthorize("hasAuthority('HR')")
@@ -56,7 +56,9 @@ public class SalaryController {
     @GetMapping("/my-salary")
     @PreAuthorize("hasAuthority('EMPLOYEE')")
     public ResponseEntity<?> getMySalary(Authentication authentication) {
-        User user = userRepository.findByUsername(authentication.getName()).get();
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("Error: User record not found."));
+        
         Employee employee = employeeRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Error: Employee record not found."));
         
@@ -69,6 +71,6 @@ public class SalaryController {
     public ResponseEntity<?> getEmployeeSalary(@PathVariable Long id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Error: Employee not found."));
-        return ResponseEntity.ok(salaryRepository.findByEmployee(employee));
+        return ResponseEntity.ok(salaryRepository.findByEmployee(employee).orElse(null));
     }
 }
